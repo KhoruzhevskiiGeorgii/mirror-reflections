@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Два зеркала: изображения и привязанный луч</title>
+  <title>Два зеркала: виртуальные изображения и ход луча</title>
   <style>
     :root { --ink:#17213a; --muted:#4c5872; --card:#ffffff; --soft:#edf3ff; }
     * { box-sizing: border-box; }
@@ -104,10 +104,11 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Два зеркала: изображения и луч, привязанный к выбранному изображению</h1>
+  <h1>Два зеркала: виртуальные изображения и ход луча</h1>
   <div class="lead">
-    Здесь луч больше не произвольный. Ты выбираешь конкретное виртуальное изображение, а программа строит именно тот ход света,
-    который соответствует этой последовательности отражений. Чёрную точку глаза на рыбе теперь тоже можно перетаскивать.
+    Это интерактивная модель двух плоских зеркал, образующих угол. Объект и источник света расположены на биссектрисе угла.
+    Можно менять угол между зеркалами, выбирать виртуальное изображение и перемещать глаз наблюдателя, чтобы смотреть,
+    какие изображения возникают и в каких случаях существует реальный ход луча.
   </div>
 
   <div class="grid">
@@ -130,15 +131,15 @@
 
       <div class="box" id="stats"></div>
       <div class="small" style="margin-top:10px;">
-        Красная ломаная — реальный путь света от светящейся точки на рыбе к глазу рыбы.
-        Фиолетовая рыба — выбранное виртуальное изображение, к которому этот путь привязан.
-        Чёрную точку глаза можно перетаскивать прямо на канве.
+        Красная ломаная показывает реальный ход светового луча, если такой путь существует.
+        Фиолетовая рыба — выбранное виртуальное изображение.
+        Пунктир к фиолетовому источнику — вспомогательная линия из метода развёртывания зеркал.
       </div>
     </div>
 
     <div class="canvasCard">
       <div class="canvasTools">
-        <div>Картинку можно двигать мышью. Я ещё поднял её выше по умолчанию.</div>
+        <div>Картинку можно двигать мышью. Чёрную точку глаза тоже можно перетаскивать, чтобы менять положение наблюдателя.</div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button id="resetEye" type="button">Сбросить глаз</button>
           <button id="resetView" type="button">Сбросить положение</button>
@@ -157,11 +158,13 @@
   </div>
 
   <div class="card note">
-    <b>Как читать картинку.</b>
+    <b>Как читать картинку.</b><br>
     Последовательность <code>L</code> означает отражение в левом зеркале, <code>R</code> — в правом.
-    Например, <code>LR</code> значит: свет сначала отражается от левого зеркала, потом от правого.
-    Виртуальная рыба получается теми же отражениями исходной рыбы. Красная ломаная строится из этой же последовательности,
-    поэтому теперь луч и выбранное изображение согласованы.
+    Например, <code>LR</code> значит: свет сначала отражается от левого зеркала, потом от правого.<br><br>
+    Серые рыбы — все виртуальные изображения объекта, фиолетовая рыба — выбранное изображение.
+    Фиолетовый пунктир соединяет глаз наблюдателя с соответствующим виртуальным источником в развёрнутой схеме.
+    Красная ломаная показывается только тогда, когда после сворачивания получается реальный луч,
+    отражающийся от настоящих зеркал в правильном порядке.
   </div>
 </div>
 
@@ -190,7 +193,7 @@ let pan = {...defaultPan};
 let drag = null;
 let dragEye = false;
 const mirrorLen = 470;
-const sourceOffset = -22;
+const sourceOffset = 0;
 const defaultEyeOffset = {x:22, y:0};
 let eyeOffset = {...defaultEyeOffset};
 
@@ -369,9 +372,9 @@ function drawMirrors(alpha){
   ctx.fillText(alpha+'°', txt.x-20, txt.y+4);
 }
 
-function drawRay(path, bounces, ok){
+function drawRay(path){
   ctx.save();
-  ctx.strokeStyle = ok ? '#d94a1d' : '#c0392b';
+  ctx.strokeStyle = '#d94a1d';
   ctx.lineWidth = 3.2;
   ctx.beginPath();
   path.forEach((p,i)=>{
@@ -381,6 +384,21 @@ function drawRay(path, bounces, ok){
   ctx.stroke();
   ctx.restore();
   for(let i=1;i<path.length-1;i++) drawPoint(path[i], '#d94a1d', 'R'+i);
+}
+
+function drawImpossibleConstruction(path){
+  ctx.save();
+  ctx.setLineDash([7,7]);
+  ctx.strokeStyle = 'rgba(150,150,150,0.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  path.forEach((p,i)=>{
+    const c=toC(p);
+    if(i===0) ctx.moveTo(c.x,c.y); else ctx.lineTo(c.x,c.y);
+  });
+  ctx.stroke();
+  ctx.restore();
+  for(let i=1;i<path.length-1;i++) drawPoint(path[i], '#999', 'нет');
 }
 
 function draw(){
@@ -442,18 +460,20 @@ function draw(){
       drawPoint(sourceImg, '#7447d8', 'вирт. источник');
     }
     const pathData = buildPath(source, eye, chosen.seq, angles);
-    drawRay(pathData.points, [], pathData.ok);
+    if(pathData.ok) drawRay(pathData.points);
+    else drawImpossibleConstruction(pathData.points);
 
     const q = 360/alpha;
     const integerCase = Math.abs(q-Math.round(q)) < 1e-9;
-    const warning = pathData.problems.length ? '<br><br><b>Предупреждение:</b><br>'+[...new Set(pathData.problems)].join('<br>') : '';
+    const warning = pathData.problems.length ? '<br><br><b>Реального красного луча для этого положения глаза нет.</b><br>'+[...new Set(pathData.problems)].join('<br>') : '';
     stats.innerHTML = `<b>Сейчас:</b><br>
       α = <b>${alpha}°</b><br>
       360° / α = ${q.toFixed(3)}<br>
       Число изображений по формуле: <b>N = ${imageCount(alpha)}</b><br>
       Случай: ${integerCase ? 'целое 360°/α' : 'нецелое 360°/α'}<br>
       Выбрано: <b>I${idx+1}</b>, отражения: <code>${chosen.seq}</code><br>
-      Количество отражений луча: <b>${chosen.seq.length}</b>${warning}`;
+      Количество отражений в последовательности: <b>${chosen.seq.length}</b><br>
+      Красный луч: <b>${pathData.ok ? 'есть' : 'невозможен'}</b>${warning}`;
   } else {
     stats.innerHTML = 'Для этого угла изображений не получилось.';
   }
