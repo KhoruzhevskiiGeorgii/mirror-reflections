@@ -12,11 +12,12 @@ function expectCountry(name, code, currency) {
 }
 
 test('country coverage is close to the full sovereign-state set', () => {
-  assert.ok(ALL_COUNTRIES.length >= 190, `expected at least 190 countries, got ${ALL_COUNTRIES.length}`);
+  assert.ok(ALL_COUNTRIES.length >= 197, `expected at least 197 countries, got ${ALL_COUNTRIES.length}`);
 });
 
-test('Russia and previously missing African countries are tracked', () => {
+test('Russia, North Korea, and previously missing African countries are tracked', () => {
   expectCountry('Russia', 'RU', 'RUB');
+  expectCountry('North Korea', 'KP', 'KPW');
   expectCountry('Democratic Republic of the Congo', 'CD', 'CDF');
   expectCountry('Cameroon', 'CM', 'XAF');
   expectCountry('Côte d’Ivoire', 'CI', 'XOF');
