@@ -24,7 +24,7 @@ const RAW_COUNTRIES = [
   ['MX','Mexico','MXN'],['FM','Micronesia','USD'],['MD','Moldova','MDL'],['MC','Monaco','EUR'],['MN','Mongolia','MNT'],
   ['ME','Montenegro','EUR'],['MA','Morocco','MAD'],['MZ','Mozambique','MZN'],['MM','Myanmar','MMK'],['NA','Namibia','NAD'],
   ['NR','Nauru','AUD'],['NP','Nepal','NPR'],['NL','Netherlands','EUR'],['NZ','New Zealand','NZD'],['NI','Nicaragua','NIO'],
-  ['NE','Niger','XOF'],['NG','Nigeria','NGN'],['MK','North Macedonia','MKD'],['NO','Norway','NOK'],['OM','Oman','OMR'],
+  ['NE','Niger','XOF'],['NG','Nigeria','NGN'],['KP','North Korea','KPW'],['MK','North Macedonia','MKD'],['NO','Norway','NOK'],['OM','Oman','OMR'],
   ['PK','Pakistan','PKR'],['PW','Palau','USD'],['PS','Palestine','ILS'],['PA','Panama','PAB'],['PG','Papua New Guinea','PGK'],
   ['PY','Paraguay','PYG'],['PE','Peru','PEN'],['PH','Philippines','PHP'],['PL','Poland','PLN'],['PT','Portugal','EUR'],
   ['QA','Qatar','QAR'],['RO','Romania','RON'],['RU','Russia','RUB'],['RW','Rwanda','RWF'],['KN','Saint Kitts and Nevis','XCD'],
