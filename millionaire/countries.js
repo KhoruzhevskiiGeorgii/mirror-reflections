@@ -40,6 +40,24 @@ const RAW_COUNTRIES = [
   ['VA','Vatican City','EUR'],['VE','Venezuela','VES'],['VN','Vietnam','VND'],['YE','Yemen','YER'],['ZM','Zambia','ZMW'],['ZW','Zimbabwe','ZWG'],
 ];
 
+// Regions Google GeoChart renders separately from the sovereign-country list above.
+// They are map-only: they never change the 197-country count or milestone ranking.
+// Western Sahara uses MAD as a practical currency proxy; this is not a sovereignty claim.
+const RAW_MAP_TERRITORIES = [
+  ['GL','Greenland','DKK'],['FO','Faroe Islands','DKK'],['AX','Åland Islands','EUR'],
+  ['GF','French Guiana','EUR'],['GP','Guadeloupe','EUR'],['MQ','Martinique','EUR'],['RE','Réunion','EUR'],['YT','Mayotte','EUR'],
+  ['PM','Saint Pierre and Miquelon','EUR'],['BL','Saint Barthélemy','EUR'],['MF','Saint Martin','EUR'],
+  ['NC','New Caledonia','XPF'],['PF','French Polynesia','XPF'],['WF','Wallis and Futuna','XPF'],
+  ['PR','Puerto Rico','USD'],['VI','U.S. Virgin Islands','USD'],['GU','Guam','USD'],['AS','American Samoa','USD'],['MP','Northern Mariana Islands','USD'],
+  ['HK','Hong Kong','HKD'],['MO','Macau','MOP'],
+  ['BM','Bermuda','BMD'],['KY','Cayman Islands','KYD'],['VG','British Virgin Islands','USD'],['AI','Anguilla','XCD'],['MS','Montserrat','XCD'],
+  ['FK','Falkland Islands','FKP'],['GI','Gibraltar','GIP'],['IM','Isle of Man','GBP'],['JE','Jersey','GBP'],['GG','Guernsey','GBP'],['SH','Saint Helena','SHP'],['TC','Turks and Caicos Islands','USD'],
+  ['CK','Cook Islands','NZD'],['NU','Niue','NZD'],['TK','Tokelau','NZD'],['PN','Pitcairn Islands','NZD'],
+  ['AW','Aruba','AWG'],['CW','Curaçao','XCG'],['SX','Sint Maarten','XCG'],['BQ','Caribbean Netherlands','USD'],
+  ['CX','Christmas Island','AUD'],['CC','Cocos Islands','AUD'],['NF','Norfolk Island','AUD'],
+  ['IO','British Indian Ocean Territory','USD'],['EH','Western Sahara','MAD'],
+];
+
 function flagFromCode(code) {
   return [...code].map((letter) => String.fromCodePoint(127397 + letter.charCodeAt(0))).join('');
 }
@@ -51,5 +69,6 @@ export const ALL_COUNTRIES = RAW_COUNTRIES.map(([code, country, currency]) => ({
   flag: flagFromCode(code),
 }));
 
+export const MAP_TERRITORIES = RAW_MAP_TERRITORIES.map(([code, country, currency]) => ({ code, country, currency }));
 export const COUNTRIES = ALL_COUNTRIES;
 export const EURO_COUNTRIES = ALL_COUNTRIES.filter((item) => item.currency === 'EUR');
