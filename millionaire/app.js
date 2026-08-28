@@ -88,15 +88,6 @@ function warmRates(base) {
   getRates(base).catch(() => {});
 }
 
-function geoName(country) {
-  return ({
-    'Czechia': 'Czech Republic',
-    'Türkiye': 'Turkey',
-    'South Korea': 'South Korea',
-    'North Macedonia': 'North Macedonia',
-  })[country] || country;
-}
-
 function loadGoogleCharts() {
   if (window.google?.visualization?.GeoChart) return Promise.resolve();
   if (googleChartsPromise) return googleChartsPromise;
@@ -142,8 +133,8 @@ async function renderMap(unlocked, best, next) {
   try {
     await loadGoogleCharts();
     const rows = [['Country', 'Status']];
-    for (const item of unlocked) rows.push([geoName(item.country), item.country === best.country ? 3 : 1]);
-    if (next) rows.push([geoName(next.country), 2]);
+    for (const item of unlocked) rows.push([item.code, item.country === best.country ? 3 : 1]);
+    if (next) rows.push([next.code, 2]);
 
     const data = window.google.visualization.arrayToDataTable(rows);
     const chart = new window.google.visualization.GeoChart(worldMap);
