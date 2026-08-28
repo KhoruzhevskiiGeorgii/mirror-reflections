@@ -44,7 +44,7 @@ const RAW_COUNTRIES = [
 // They are map-only: they never change the 197-country count or milestone ranking.
 // Western Sahara uses MAD as a practical currency proxy; this is not a sovereignty claim.
 const RAW_MAP_TERRITORIES = [
-  ['GL','Greenland','DKK'],['FO','Faroe Islands','DKK'],['AX','Åland Islands','EUR'],
+  ['GL','Greenland','DKK'],['FO','Faroe Islands','DKK'],['SJ','Svalbard and Jan Mayen','NOK'],['AX','Åland Islands','EUR'],
   ['GF','French Guiana','EUR'],['GP','Guadeloupe','EUR'],['MQ','Martinique','EUR'],['RE','Réunion','EUR'],['YT','Mayotte','EUR'],
   ['PM','Saint Pierre and Miquelon','EUR'],['BL','Saint Barthélemy','EUR'],['MF','Saint Martin','EUR'],
   ['NC','New Caledonia','XPF'],['PF','French Polynesia','XPF'],['WF','Wallis and Futuna','XPF'],
