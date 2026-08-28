@@ -9,14 +9,18 @@ const pages = [
 ];
 
 for (const page of pages) {
-  test(`${page} has the unified Ko-fi support CTA`, async () => {
+  test(`${page} uses the shared Ko-fi support control`, async () => {
     const html = await readFile(new URL(`./${page}`, import.meta.url), 'utf8');
     assert.match(html, /href="https:\/\/ko-fi\.com\/sphere_homotopy"/);
     assert.match(html, /class="support-project"/);
-    assert.match(html, /class="kofi-mark" aria-hidden="true"/);
-    assert.match(html, />Support me on Ko-fi<\/span>/);
-    assert.doesNotMatch(html, /Support this project/);
-    assert.doesNotMatch(html, /Support me on Ko-fi[^<]*↗/);
     assert.match(html, /rel="noopener noreferrer"/);
   });
 }
+
+test('shared support control displays the Ko-fi label and cup mark without an arrow', async () => {
+  const css = await readFile(new URL('./support.css', import.meta.url), 'utf8');
+  assert.match(css, /font-size:0/);
+  assert.match(css, /data:image\/svg\+xml/);
+  assert.match(css, /content:"Support me on Ko-fi"/);
+  assert.doesNotMatch(css, /content:[^;}]*↗/);
+});
