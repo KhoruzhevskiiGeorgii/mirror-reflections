@@ -44,6 +44,7 @@ test('country records have unique ISO region codes and generated flags', () => {
 test('map-only territories fill visible holes without changing the country count', () => {
   assert.equal(ALL_COUNTRIES.length, 197);
   assert.equal(territoryByCode.get('GL')?.currency, 'DKK');
+  assert.equal(territoryByCode.get('SJ')?.currency, 'NOK');
   assert.equal(territoryByCode.get('GF')?.currency, 'EUR');
   assert.equal(territoryByCode.get('PR')?.currency, 'USD');
   assert.equal(territoryByCode.get('EH')?.currency, 'MAD');
