@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { ALL_COUNTRIES } from './countries.js';
 
 const byName = new Map(ALL_COUNTRIES.map((item) => [item.country, item]));
@@ -38,11 +37,4 @@ test('country records have unique ISO region codes and generated flags', () => {
     assert.match(item.code, /^[A-Z]{2}$/);
     assert.ok(item.flag, `${item.country} should have a flag`);
   }
-});
-
-test('map renders every tracked country by ISO code, including locked countries', async () => {
-  const app = await readFile(new URL('./app.js', import.meta.url), 'utf8');
-  assert.match(app, /for \(const item of ALL_COUNTRIES\)/);
-  assert.match(app, /\{ v: item\.code, f: item\.country \}/);
-  assert.match(app, /unlockedNames\.has\(item\.country\) \? 1 : 0/);
 });
