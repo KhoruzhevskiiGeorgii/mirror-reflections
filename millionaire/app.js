@@ -225,11 +225,20 @@ async function calculate(amountValue, currency) {
   setBusy(true);
   setStatus('Checking reference rates…');
   try {
-    const rateInfo = await getRates(currency);
-    renderResult(amount, currency, rateInfo);
-    setStatus(rateInfo.stale ? 'Live FX was unavailable — using your last saved rates.' : 'Ready.', 'ok');
-  } catch {
-    setStatus('Couldn’t reach the FX service. Tap again — the page will stay right here.', 'error');
+    let rateInfo;
+    try {
+      rateInfo = await getRates(currency);
+    } catch {
+      setStatus('Couldn’t reach the FX service. Tap again — the page will stay right here.', 'error');
+      return;
+    }
+
+    try {
+      renderResult(amount, currency, rateInfo);
+      setStatus(rateInfo.stale ? 'Live FX was unavailable — using your last saved rates.' : 'Ready.', 'ok');
+    } catch (error) {
+      setStatus(error.message || 'Couldn’t calculate that amount.', 'error');
+    }
   } finally {
     setBusy(false);
   }
