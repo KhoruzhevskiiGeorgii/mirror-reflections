@@ -24,3 +24,8 @@ test('shared support control displays the Ko-fi label and cup mark without an ar
   assert.match(css, /content:"Support me on Ko-fi"/);
   assert.doesNotMatch(css, /content:[^;}]*↗/);
 });
+
+test('Ko-fi mark sits close to the label', async () => {
+  const css = await readFile(new URL('./support.css', import.meta.url), 'utf8');
+  assert.match(css, /gap:4px/);
+});
