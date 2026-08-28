@@ -1,4 +1,4 @@
-import { ALL_COUNTRIES } from './countries.js';
+import { ALL_COUNTRIES, MAP_TERRITORIES } from './countries.js';
 import { validateAmount, rankMillionaireCountries, findNextMilestone, formatMoney, buildShareText } from './core.js';
 import { requestRates } from './rate-client.js';
 
@@ -20,7 +20,7 @@ const CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 const STALE_MAX_AGE = 14 * 24 * 60 * 60 * 1000;
 const inFlightRates = new Map();
 
-const currencies = [...new Set(ALL_COUNTRIES.map((item) => item.currency))].sort();
+const currencies = [...new Set([...ALL_COUNTRIES, ...MAP_TERRITORIES].map((item) => item.currency))].sort();
 for (const code of currencies) {
   const option = document.createElement('option');
   option.value = code;
@@ -88,15 +88,6 @@ function warmRates(base) {
   getRates(base).catch(() => {});
 }
 
-function geoName(country) {
-  return ({
-    'Czechia': 'Czech Republic',
-    'Türkiye': 'Turkey',
-    'South Korea': 'South Korea',
-    'North Macedonia': 'North Macedonia',
-  })[country] || country;
-}
-
 function loadGoogleCharts() {
   if (window.google?.visualization?.GeoChart) return Promise.resolve();
   if (googleChartsPromise) return googleChartsPromise;
@@ -134,7 +125,7 @@ function loadGoogleCharts() {
   return googleChartsPromise;
 }
 
-async function renderMap(unlocked, best, next) {
+async function renderMap(unlocked, best, next, amount, rates) {
   const unlockedNames = new Set(unlocked.map((item) => item.country));
   mapFallback.hidden = true;
   worldMap.innerHTML = '<div class="map-placeholder">Loading map…</div>';
@@ -142,8 +133,15 @@ async function renderMap(unlocked, best, next) {
   try {
     await loadGoogleCharts();
     const rows = [['Country', 'Status']];
-    for (const item of unlocked) rows.push([geoName(item.country), item.country === best.country ? 3 : 1]);
-    if (next) rows.push([geoName(next.country), 2]);
+    for (const item of unlocked) rows.push([item.code, item.country === best.country ? 3 : 1]);
+    if (next) rows.push([next.code, 2]);
+
+    // Fill separately-rendered territories using their own local currency where possible.
+    // These rows are visual only and do not change the sovereign-country count or milestones.
+    for (const territory of MAP_TERRITORIES) {
+      const rate = Number(rates[territory.currency]);
+      if (Number.isFinite(rate) && rate > 0 && amount * rate >= 1_000_000) rows.push([territory.code, 1]);
+    }
 
     const data = window.google.visualization.arrayToDataTable(rows);
     const chart = new window.google.visualization.GeoChart(worldMap);
@@ -209,7 +207,7 @@ function renderResult(amount, currency, rateInfo) {
 
   result.hidden = false;
   requestAnimationFrame(() => result.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  renderMap(unlocked, best, next);
+  renderMap(unlocked, best, next, amount, rateInfo.rates);
 }
 
 async function calculate(amountValue, currency) {

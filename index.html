@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Два зеркала: виртуальные изображения и ход луча</title>
+<link rel="stylesheet" href="./support.css">
 <style>
 :root{--ink:#17213a;--muted:#4c5872;--soft:#edf3ff}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f6f8fb;color:var(--ink)}.wrap{max-width:1200px;margin:24px auto;padding:0 16px 24px}h1{margin:0 0 10px;font-size:28px}.lead,.small{color:var(--muted);line-height:1.45}.grid{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}.card,canvas{background:white;border-radius:16px;box-shadow:0 4px 20px #0001}.card{padding:16px}label{display:block;font-weight:700;margin:12px 0 6px}input[type=range]{width:100%}.row{display:flex;gap:12px;align-items:center}.val{min-width:52px;text-align:right;font-weight:700}.box{background:var(--soft);border-radius:12px;padding:12px;margin-top:12px;line-height:1.45}.checks label{font-weight:600;margin:9px 0}.tools{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 8px;color:var(--muted);font-size:14px}.tools button{border:0;background:var(--soft);border-radius:10px;padding:8px 12px;font-weight:700;cursor:pointer}.canwrap{border-radius:16px;overflow:hidden;cursor:grab;touch-action:none}.canwrap.dragging{cursor:grabbing}canvas{display:block;width:100%;height:auto}.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;color:var(--muted);font-size:14px}.legend span:before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}.a:before{background:#1d6fd6}.b:before{background:#bbb}.c:before{background:#7447d8}.d:before{background:#d94a1d}code{background:#eef3ff;border-radius:6px;padding:2px 5px}.note{margin-top:16px;line-height:1.55}@media(max-width:900px){.grid{grid-template-columns:1fr}}
 </style>
@@ -26,6 +27,7 @@
 </div>
 <div class="card note"><b>Как читать картинку.</b><br>Последовательность <code>L</code> означает отражение в левом зеркале, <code>R</code> — в правом. Например, <code>LR</code> значит: свет сначала отражается от левого зеркала, потом от правого.<br><br>У одного геометрического изображения может быть несколько последовательностей отражений. Например, при угле 90° нижнее изображение получается и как <code>LR</code>, и как <code>RL</code>. Программа проверяет все такие последовательности и выбирает ту, которая даёт физически возможный луч для текущего положения глаза.</div>
 </div>
+<div class="support-project-wrap"><a class="support-project" href="https://ko-fi.com/sphere_homotopy" target="_blank" rel="noopener noreferrer">Support this project ↗</a></div>
 <script>
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height,O={x:W/2,y:H-78};
 const angle=document.getElementById('angle'),dist=document.getElementById('dist'),sel=document.getElementById('sel'),showAll=document.getElementById('showAll'),showLine=document.getElementById('showLine'),showLabels=document.getElementById('showLabels');
