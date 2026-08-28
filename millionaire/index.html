@@ -1,6 +1,76 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#080b0d"><meta name="description" content="Find out where your money makes you a millionaire."><title>Where Are You a Millionaire?</title><link rel="stylesheet" href="./styles.css"></head><body><main>
-<section id="landing" class="screen landing"><header><span class="mark">◉</span><b>SPHERE HOMOTOPY</b><span class="live">● LIVE FX</span></header><div class="landing-copy"><div class="eyebrow">GLOBAL WEALTH, LOCALLY SPEAKING</div><h1>Where are you a <em>millionaire?</em></h1><p class="lede">Enter what you have. We’ll find the country where you’ve only just crossed the million mark.</p><form id="money-form"><label for="amount">I HAVE</label><div class="money-input"><input id="amount" inputmode="decimal" autocomplete="off" placeholder="1,000" aria-label="Amount"><select id="currency" aria-label="Currency"></select></div><button class="primary" type="submit"><span>Make me a millionaire</span><span>→</span></button></form><p class="source">● Live reference FX data via Frankfurter</p></div></section>
-<section id="loading" class="screen center" hidden><div class="spinner"></div><h2>Checking the world…</h2></section>
-<section id="error" class="screen center" hidden><div class="eyebrow">NOT QUITE</div><h2 id="error-message">Something went wrong.</h2><button id="retry" class="primary">Try again <span>→</span></button></section>
-<section id="result" hidden><div class="hero screen"><div class="result-card"><div class="eyebrow">YOU’RE A MILLIONAIRE IN</div><div id="hero-flag" class="flag"></div><h2 id="hero-country"></h2><div id="hero-money" class="hero-money"></div><p id="hero-original" class="hero-original"></p><div class="actions"><button id="share-x" class="primary">Share on X <span>↗</span></button><button id="copy" class="secondary">Copy result</button></div></div><div class="scroll-cue">More countries ↓</div></div><div class="more"><div class="more-head"><div><div class="eyebrow">ALSO UNLOCKED</div><h3 id="country-count"></h3></div><button id="again" class="text-button">Change amount</button></div><ol id="others"></ol><p id="rate-date" class="source"></p><p class="fineprint">For fun, not financial advice. “Millionaire” means ≥1,000,000 units of the country’s local currency at the displayed reference rate.</p></div></section>
-</main><script type="module" src="./app.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080b0d">
+  <meta name="description" content="Find out where your money makes you a millionaire — and what country is next.">
+  <title>Where Are You a Millionaire?</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Millionaire map home"><span class="brand-dot"></span><span>SPHERE / MILLIONAIRE</span></a>
+    <span class="live-pill"><i></i> reference FX</span>
+  </header>
+
+  <section class="intro">
+    <div class="kicker">GLOBAL WEALTH, LOCALLY SPEAKING</div>
+    <h1>Where are you a <span>millionaire?</span></h1>
+    <p>Enter what you have. We’ll show where you’ve crossed one million local units, your closest match, and the next country to unlock.</p>
+  </section>
+
+  <section class="calculator-card" aria-label="Millionaire calculator">
+    <form id="money-form">
+      <label for="amount">I HAVE</label>
+      <div class="money-row">
+        <input id="amount" inputmode="decimal" autocomplete="off" placeholder="1,000" aria-label="Amount">
+        <select id="currency" aria-label="Currency"></select>
+      </div>
+      <button id="submit-button" class="cta" type="submit"><span id="submit-label">Show me the map</span><span class="arrow">→</span></button>
+      <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="result" class="results" hidden>
+    <div class="result-grid">
+      <article id="best-match" class="best-card">
+        <div class="card-label">BEST MATCH</div>
+        <div class="best-main"><span id="hero-flag" class="flag"></span><div><h2 id="hero-country"></h2><div id="hero-money" class="hero-money"></div></div></div>
+        <p id="hero-original" class="muted"></p>
+      </article>
+
+      <article id="next-milestone" class="milestone-card">
+        <div class="card-label">NEXT MILESTONE</div>
+        <div class="milestone-country"><span id="next-flag"></span><strong id="next-country"></strong></div>
+        <p id="next-copy"></p>
+        <div class="progress-track"><div id="next-progress" class="progress-fill"></div></div>
+      </article>
+    </div>
+
+    <article class="map-card">
+      <div class="section-head">
+        <div><div class="card-label">YOUR MILLIONAIRE MAP</div><h3 id="country-count"></h3></div>
+        <div class="legend"><span><i class="legend-dot unlocked"></i> millionaire</span><span><i class="legend-dot best"></i> best match</span><span><i class="legend-dot next"></i> next milestone</span></div>
+      </div>
+      <div id="world-map" class="map-canvas" aria-label="World map of millionaire countries"><div class="map-placeholder">Loading map…</div></div>
+      <div id="map-fallback" class="map-fallback" hidden></div>
+    </article>
+
+    <article class="countries-card">
+      <div class="section-head compact"><div><div class="card-label">UNLOCKED</div><h3>Millionaire countries</h3></div></div>
+      <div id="others" class="country-chips"></div>
+    </article>
+
+    <div class="actions">
+      <button id="share-x" class="cta action-button">Share on X <span>↗</span></button>
+      <button id="copy" class="ghost action-button">Copy result</button>
+    </div>
+    <p id="rate-date" class="data-note"></p>
+    <p class="fineprint">For fun, not financial advice. “Millionaire” means at least 1,000,000 units of a country’s local currency at the displayed reference rate.</p>
+  </section>
+</main>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
