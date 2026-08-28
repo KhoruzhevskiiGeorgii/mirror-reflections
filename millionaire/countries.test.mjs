@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ALL_COUNTRIES } from './countries.js';
+import { ALL_COUNTRIES, MAP_TERRITORIES } from './countries.js';
 
 const byName = new Map(ALL_COUNTRIES.map((item) => [item.country, item]));
+const territoryByCode = new Map(MAP_TERRITORIES.map((item) => [item.code, item]));
 
 function expectCountry(name, code, currency) {
   const item = byName.get(name);
@@ -38,4 +39,13 @@ test('country records have unique ISO region codes and generated flags', () => {
     assert.match(item.code, /^[A-Z]{2}$/);
     assert.ok(item.flag, `${item.country} should have a flag`);
   }
+});
+
+test('map-only territories fill visible holes without changing the country count', () => {
+  assert.equal(ALL_COUNTRIES.length, 197);
+  assert.equal(territoryByCode.get('GL')?.currency, 'DKK');
+  assert.equal(territoryByCode.get('GF')?.currency, 'EUR');
+  assert.equal(territoryByCode.get('PR')?.currency, 'USD');
+  assert.equal(territoryByCode.get('EH')?.currency, 'MAD');
+  assert.ok(MAP_TERRITORIES.length >= 20);
 });
