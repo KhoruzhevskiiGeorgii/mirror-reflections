@@ -7,6 +7,7 @@
   <meta name="description" content="Find out where your money makes you a millionaire — and what country is next.">
   <title>Where Are You a Millionaire?</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./currency-flags.css">
   <link rel="stylesheet" href="../support.css">
 </head>
 <body>
@@ -27,7 +28,7 @@
       <label for="amount">I HAVE</label>
       <div class="money-row">
         <input id="amount" inputmode="decimal" autocomplete="off" placeholder="1,000" aria-label="Amount">
-        <select id="currency" aria-label="Currency"></select>
+        <div class="currency-select-wrap"><span id="currency-flag" class="currency-flag" aria-hidden="true">🇺🇸</span><select id="currency" aria-label="Currency"></select></div>
       </div>
       <button id="submit-button" class="cta" type="submit"><span id="submit-label">Show me the map</span><span class="arrow">→</span></button>
       <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
@@ -74,5 +75,6 @@
   <div class="support-project-wrap"><a class="support-project" href="https://ko-fi.com/sphere_homotopy" target="_blank" rel="noopener noreferrer">Support this project ↗</a></div>
 </main>
 <script type="module" src="./app.js"></script>
+<script type="module" src="./currency-flags.js"></script>
 </body>
 </html>
