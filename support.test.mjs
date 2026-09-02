@@ -3,15 +3,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const pages = [
-  'index.html',
-  'millionaire/index.html',
-  'custom-boob/index.html',
+  ['index.html', './go/kofi/mirrors/', './analytics.js'],
+  ['millionaire/index.html', '../go/kofi/millionaire/', '../analytics.js'],
+  ['custom-boob/index.html', '../go/kofi/custom-boob/', '../analytics.js'],
 ];
 
-for (const page of pages) {
-  test(`${page} uses the shared Ko-fi support control`, async () => {
+for (const [page, supportHref, analyticsSrc] of pages) {
+  test(`${page} uses the shared tracked Ko-fi support control`, async () => {
     const html = await readFile(new URL(`./${page}`, import.meta.url), 'utf8');
-    assert.match(html, /href="https:\/\/ko-fi\.com\/sphere_homotopy"/);
+    assert.match(html, new RegExp(`href="${supportHref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
+    assert.match(html, new RegExp(`src="${analyticsSrc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
     assert.match(html, /class="support-project"/);
     assert.match(html, /rel="noopener noreferrer"/);
   });
