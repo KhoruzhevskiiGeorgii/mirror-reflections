@@ -54,21 +54,18 @@ Tagline:
 
 `See where your money crosses 1,000,000 local currency units`
 
-Description:
+Description (249 characters):
 
-`Enter an amount and currency to see where it makes you a literal millionaire in local units. The interactive map highlights every country you unlock, your closest match, and the next million-unit threshold. A small data-viz toy built with live reference FX rates — for curiosity, not financial advice.`
+`Enter an amount and currency to see where it makes you a literal millionaire in local units. The map shows every country you unlock, your closest match, and the next 1M threshold using current reference FX rates. For curiosity, not financial advice.`
 
 Pricing: `Free`
 
-Suggested tags, if available: `Data Visualization`, `Fintech`, `Side Projects`.
+Suggested topics, if available: `Data Visualization`, `Fintech`, `Side Projects`.
 
-Maker first comment:
-
-> I built this because “millionaire” sounds universal but the number 1,000,000 means wildly different things across currencies. The result is a deliberately literal interactive map: choose what you have, see every country where it crosses one million local units, and find the next threshold.
->
-> The interesting part for me is the gap between a familiar word and a purely nominal currency number. It is not a purchasing-power or wealth ranking — just a compact way to explore exchange-rate scale.
->
-> I’d love feedback on the interaction and on any country/currency edge cases I missed.
+Product Hunt currently asks for genuine human comments rather than AI-generated ones. Write the Maker first comment yourself using these points:
+- why you made it: the word “millionaire” sounds universal while 1,000,000 local units vary wildly across currencies;
+- what it is: a deliberately literal nominal-FX map, not a purchasing-power or wealth ranking;
+- what feedback you want: interaction quality and country/currency edge cases.
 
 Use a square thumbnail with one strong visual idea: dark background, bright green world-map/globe motif, large `1M`, and the product name. Avoid dense UI text in the thumbnail.
 
