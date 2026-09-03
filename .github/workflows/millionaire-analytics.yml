@@ -1,0 +1,48 @@
+name: Millionaire analytics snapshot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/cloudflare-analytics.mjs'
+      - 'scripts/cloudflare-analytics.test.mjs'
+      - '.github/workflows/millionaire-analytics.yml'
+  schedule:
+    - cron: '17 5 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: millionaire-analytics-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test analytics exporter
+        run: node --test scripts/cloudflare-analytics.test.mjs
+      - name: Fetch Cloudflare Web Analytics
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          mkdir -p analytics
+          node scripts/cloudflare-analytics.mjs --days 30 --output analytics/millionaire-latest.json
+      - name: Commit snapshot when changed
+        run: |
+          if [ -z "$(git status --porcelain -- analytics/millionaire-latest.json)" ]; then
+            echo 'No analytics changes'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add analytics/millionaire-latest.json
+          git commit -m 'chore: update Millionaire analytics snapshot'
+          git push
