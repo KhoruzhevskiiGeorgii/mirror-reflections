@@ -28,7 +28,19 @@ jobs:
           node-version: '22'
       - name: Test analytics exporter
         run: node --test scripts/cloudflare-analytics.test.mjs
+      - name: Check Cloudflare credential
+        id: auth
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ]; then
+            echo 'configured=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'configured=false' >> "$GITHUB_OUTPUT"
+            echo '::warning::CLOUDFLARE_API_TOKEN is not configured; exporter tests passed but snapshot fetch is skipped'
+          fi
       - name: Fetch Cloudflare Web Analytics
+        if: steps.auth.outputs.configured == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -36,6 +48,7 @@ jobs:
           mkdir -p analytics
           node scripts/cloudflare-analytics.mjs --days 30 --output analytics/millionaire-latest.json
       - name: Commit snapshot when changed
+        if: steps.auth.outputs.configured == 'true'
         run: |
           if [ -z "$(git status --porcelain -- analytics/millionaire-latest.json)" ]; then
             echo 'No analytics changes'
