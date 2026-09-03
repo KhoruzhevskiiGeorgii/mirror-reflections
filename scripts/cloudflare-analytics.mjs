@@ -11,57 +11,68 @@ const PATHS = {
   productHunt: '/x_memes/go/millionaire/product-hunt/',
   kofi: '/x_memes/go/kofi/millionaire/',
 };
+const TRACKED_PATHS = Object.values(PATHS);
+const MAX_GROUPS_PER_DAY = 5000;
+const QUERY_CONCURRENCY = 4;
 
 function q(value) {
   return JSON.stringify(value);
 }
 
-function filterLiteral({ start, end, requestPath }) {
-  return `{ AND: [
-    { datetime_geq: ${q(start)}, datetime_leq: ${q(end)} },
-    { requestHost: ${q(HOST)} },
-    { bot: 0 },
-    { requestPath: ${q(requestPath)} }
-  ] }`;
+export function splitWindowByUtcDay(start, end) {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
+    throw new Error('start and end must be valid ISO timestamps');
+  }
+  if (startDate >= endDate) throw new Error('start must be before end');
+
+  const chunks = [];
+  let cursor = startDate;
+  while (cursor < endDate) {
+    const nextMidnight = new Date(Date.UTC(
+      cursor.getUTCFullYear(),
+      cursor.getUTCMonth(),
+      cursor.getUTCDate() + 1,
+    ));
+    const chunkEnd = nextMidnight < endDate ? nextMidnight : endDate;
+    chunks.push({ start: cursor.toISOString(), end: chunkEnd.toISOString() });
+    cursor = chunkEnd;
+  }
+  return chunks;
 }
 
 export function buildGraphQLRequest({ accountTag, start, end }) {
   if (!accountTag || !start || !end) throw new Error('accountTag, start and end are required');
-  const baseFilter = {
-    AND: [
-      { datetime_geq: start, datetime_leq: end },
-      { requestHost: HOST },
-      { bot: 0 },
-    ],
-  };
-  const totalFilter = filterLiteral({ start, end, requestPath: PATHS.total });
-  const redditFilter = filterLiteral({ start, end, requestPath: PATHS.reddit });
-  const hackerNewsFilter = filterLiteral({ start, end, requestPath: PATHS.hackerNews });
-  const productHuntFilter = filterLiteral({ start, end, requestPath: PATHS.productHunt });
-  const kofiFilter = filterLiteral({ start, end, requestPath: PATHS.kofi });
+  const pathFilters = TRACKED_PATHS.map((requestPath) => `{ requestPath: ${q(requestPath)} }`).join(',\n');
 
   return {
-    query: `query MillionaireAnalytics {
+    query: `query MillionaireAnalyticsDaily {
       viewer {
         accounts(filter: { accountTag: ${q(accountTag)} }) {
-          total: rumPageloadEventsAdaptiveGroups(limit: 1, filter: ${totalFilter}) { count sum { visits } }
-          reddit: rumPageloadEventsAdaptiveGroups(limit: 1, filter: ${redditFilter}) { count sum { visits } }
-          hackerNews: rumPageloadEventsAdaptiveGroups(limit: 1, filter: ${hackerNewsFilter}) { count sum { visits } }
-          productHunt: rumPageloadEventsAdaptiveGroups(limit: 1, filter: ${productHuntFilter}) { count sum { visits } }
-          kofi: rumPageloadEventsAdaptiveGroups(limit: 1, filter: ${kofiFilter}) { count sum { visits } }
-          referrers: rumPageloadEventsAdaptiveGroups(limit: 20, orderBy: [count_DESC], filter: ${totalFilter}) {
-            count dimensions { refererHost }
-          }
-          countries: rumPageloadEventsAdaptiveGroups(limit: 100, orderBy: [count_DESC], filter: ${totalFilter}) {
-            count dimensions { countryName }
-          }
-          devices: rumPageloadEventsAdaptiveGroups(limit: 20, orderBy: [count_DESC], filter: ${totalFilter}) {
-            count dimensions { deviceType }
+          series: rumPageloadEventsAdaptiveGroups(
+            limit: ${MAX_GROUPS_PER_DAY}
+            filter: { AND: [
+              { datetime_geq: ${q(start)}, datetime_lt: ${q(end)} },
+              { requestHost: ${q(HOST)} },
+              { bot: 0 },
+              { OR: [${pathFilters}] }
+            ] }
+          ) {
+            count
+            avg { sampleInterval }
+            sum { visits }
+            dimensions {
+              requestPath
+              countryName
+              deviceType
+              refererHost
+            }
           }
         }
       }
     }`,
-    variables: { accountTag, baseFilter },
+    variables: { accountTag, start, end },
   };
 }
 
@@ -74,43 +85,88 @@ export function validateGraphQLResponse(payload) {
   return payload;
 }
 
-function firstCount(groups) {
-  return Array.isArray(groups) && groups[0] ? Number(groups[0].count || 0) : 0;
+function add(map, key, value) {
+  map.set(key, (map.get(key) || 0) + value);
 }
 
-export function buildSnapshot(response, { generatedAt, start, end }) {
-  validateGraphQLResponse(response);
-  const accounts = response.data.viewer.accounts;
-  if (accounts.length !== 1) throw new Error(`Expected exactly one Cloudflare account, got ${accounts.length}`);
-  const data = accounts[0];
-  const total = Array.isArray(data.total) && data.total[0] ? data.total[0] : { count: 0, sum: { visits: 0 } };
+function ranked(map, keyName) {
+  return [...map.entries()]
+    .map(([key, pageviews]) => ({ [keyName]: key, pageviews }))
+    .sort((a, b) => b.pageviews - a.pageviews || String(a[keyName]).localeCompare(String(b[keyName])));
+}
+
+export function buildSnapshot(responseOrResponses, { generatedAt, start, end }) {
+  const responses = Array.isArray(responseOrResponses) ? responseOrResponses : [responseOrResponses];
+  let pageviews = 0;
+  let visits = 0;
+  let maxSampleInterval = 1;
+  const acquisition = {
+    redditPageviews: 0,
+    hackerNewsPageviews: 0,
+    productHuntPageviews: 0,
+    kofiClickIntents: 0,
+  };
+  const referrers = new Map();
+  const countries = new Map();
+  const devices = new Map();
+
+  for (const response of responses) {
+    validateGraphQLResponse(response);
+    const accounts = response.data.viewer.accounts;
+    if (accounts.length !== 1) throw new Error(`Expected exactly one Cloudflare account, got ${accounts.length}`);
+    const series = accounts[0].series || [];
+    if (series.length >= MAX_GROUPS_PER_DAY) {
+      throw new Error(`Cloudflare returned ${series.length} groups; daily result may be truncated at the ${MAX_GROUPS_PER_DAY} group limit`);
+    }
+
+    for (const row of series) {
+      const sampleInterval = Number(row.avg?.sampleInterval ?? 1);
+      if (!Number.isFinite(sampleInterval) || sampleInterval <= 0) {
+        throw new Error(`Invalid Cloudflare sampleInterval ${row.avg?.sampleInterval}`);
+      }
+      maxSampleInterval = Math.max(maxSampleInterval, sampleInterval);
+      if (sampleInterval > 1.000001) {
+        throw new Error(`Cloudflare used adaptive sampling (sampleInterval ${sampleInterval}); refusing to label the snapshot exact`);
+      }
+
+      const count = Number(row.count || 0);
+      const requestPath = row.dimensions?.requestPath;
+      if (requestPath === PATHS.total) {
+        pageviews += count;
+        visits += Number(row.sum?.visits || 0);
+        add(referrers, row.dimensions?.refererHost || '(direct)', count);
+        add(countries, row.dimensions?.countryName || 'unknown', count);
+        add(devices, row.dimensions?.deviceType || 'unknown', count);
+      } else if (requestPath === PATHS.reddit) {
+        acquisition.redditPageviews += count;
+      } else if (requestPath === PATHS.hackerNews) {
+        acquisition.hackerNewsPageviews += count;
+      } else if (requestPath === PATHS.productHunt) {
+        acquisition.productHuntPageviews += count;
+      } else if (requestPath === PATHS.kofi) {
+        acquisition.kofiClickIntents += count;
+      }
+    }
+  }
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     project: 'millionaire',
     source: 'cloudflare-web-analytics',
     generatedAt,
     window: { start, end },
-    pageviews: Number(total.count || 0),
-    visits: Number(total.sum?.visits || 0),
-    acquisition: {
-      redditPageviews: firstCount(data.reddit),
-      hackerNewsPageviews: firstCount(data.hackerNews),
-      productHuntPageviews: firstCount(data.productHunt),
-      kofiClickIntents: firstCount(data.kofi),
+    sampling: {
+      exact: true,
+      maxSampleInterval,
+      strategy: 'utc-day-chunks',
     },
-    topReferrers: (data.referrers || []).map((row) => ({
-      referrer: row.dimensions?.refererHost || '(direct)',
-      pageviews: Number(row.count || 0),
-    })),
-    countries: (data.countries || []).map((row) => ({
-      country: row.dimensions?.countryName || 'unknown',
-      pageviews: Number(row.count || 0),
-    })),
-    devices: (data.devices || []).map((row) => ({
-      device: row.dimensions?.deviceType || 'unknown',
-      pageviews: Number(row.count || 0),
-    })),
+    pageviews,
+    visits,
+    visitsDefinition: 'pageviews initiated by a direct link or a referrer on a different hostname; not unique visitors',
+    acquisition,
+    topReferrers: ranked(referrers, 'referrer'),
+    countries: ranked(countries, 'country'),
+    devices: ranked(devices, 'device'),
   };
 }
 
@@ -129,10 +185,8 @@ export async function discoverAccountTag(token, fetchImpl = fetch) {
   return accounts[0].id;
 }
 
-export async function fetchSnapshot({ token, accountTag, start, end, generatedAt = new Date().toISOString(), fetchImpl = fetch }) {
-  if (!token) throw new Error('CLOUDFLARE_API_TOKEN is required');
-  const resolvedAccountTag = accountTag || await discoverAccountTag(token, fetchImpl);
-  const body = buildGraphQLRequest({ accountTag: resolvedAccountTag, start, end });
+async function fetchChunk({ token, accountTag, start, end, fetchImpl }) {
+  const body = buildGraphQLRequest({ accountTag, start, end });
   const response = await fetchImpl(ENDPOINT, {
     method: 'POST',
     headers: {
@@ -143,7 +197,37 @@ export async function fetchSnapshot({ token, accountTag, start, end, generatedAt
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(`Cloudflare GraphQL HTTP ${response.status}`);
-  return buildSnapshot(payload, { generatedAt, start, end });
+  validateGraphQLResponse(payload);
+  return payload;
+}
+
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= items.length) return;
+      results[index] = await fn(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+export async function fetchSnapshot({ token, accountTag, start, end, generatedAt = new Date().toISOString(), fetchImpl = fetch }) {
+  if (!token) throw new Error('CLOUDFLARE_API_TOKEN is required');
+  const resolvedAccountTag = accountTag || await discoverAccountTag(token, fetchImpl);
+  const chunks = splitWindowByUtcDay(start, end);
+  const responses = await mapWithConcurrency(chunks, QUERY_CONCURRENCY, (chunk) => fetchChunk({
+    token,
+    accountTag: resolvedAccountTag,
+    start: chunk.start,
+    end: chunk.end,
+    fetchImpl,
+  }));
+  return buildSnapshot(responses, { generatedAt, start, end });
 }
 
 function parseArgs(argv) {
