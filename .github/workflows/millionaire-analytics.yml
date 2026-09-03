@@ -2,6 +2,12 @@ name: Millionaire analytics snapshot
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/cloudflare-analytics.mjs'
+      - 'scripts/cloudflare-analytics.test.mjs'
+      - '.github/workflows/millionaire-analytics.yml'
   schedule:
     - cron: '17 5 * * *'
 
