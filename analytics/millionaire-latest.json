@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "project": "millionaire",
+  "source": "cloudflare-web-analytics",
+  "generatedAt": "2026-09-03T06:10:43.970Z",
+  "window": {
+    "start": "2026-08-04T06:10:43.970Z",
+    "end": "2026-09-03T06:10:43.970Z"
+  },
+  "sampling": {
+    "exact": true,
+    "maxSampleInterval": 1,
+    "strategy": "utc-day-chunks"
+  },
+  "pageviews": 35,
+  "visits": 2,
+  "visitsDefinition": "pageviews initiated by a direct link or a referrer on a different hostname; not unique visitors",
+  "acquisition": {
+    "redditPageviews": 0,
+    "hackerNewsPageviews": 0,
+    "productHuntPageviews": 8,
+    "kofiClickIntents": 0
+  },
+  "topReferrers": [
+    {
+      "referrer": "sphere-homotopy.github.io",
+      "pageviews": 33
+    },
+    {
+      "referrer": "(direct)",
+      "pageviews": 2
+    }
+  ],
+  "countries": [
+    {
+      "country": "RS",
+      "pageviews": 18
+    },
+    {
+      "country": "US",
+      "pageviews": 6
+    },
+    {
+      "country": "BY",
+      "pageviews": 2
+    },
+    {
+      "country": "CN",
+      "pageviews": 2
+    },
+    {
+      "country": "LT",
+      "pageviews": 2
+    },
+    {
+      "country": "DE",
+      "pageviews": 1
+    },
+    {
+      "country": "FI",
+      "pageviews": 1
+    },
+    {
+      "country": "HK",
+      "pageviews": 1
+    },
+    {
+      "country": "IN",
+      "pageviews": 1
+    },
+    {
+      "country": "NG",
+      "pageviews": 1
+    }
+  ],
+  "devices": [
+    {
+      "device": "desktop",
+      "pageviews": 35
+    }
+  ]
+}
