@@ -31,7 +31,7 @@ jobs:
           node scripts/cloudflare-analytics.mjs --days 30 --output analytics/millionaire-latest.json
       - name: Commit snapshot when changed
         run: |
-          if git diff --quiet -- analytics/millionaire-latest.json; then
+          if [ -z "$(git status --porcelain -- analytics/millionaire-latest.json)" ]; then
             echo 'No analytics changes'
             exit 0
           fi
